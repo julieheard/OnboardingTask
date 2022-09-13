@@ -62,7 +62,7 @@ public class SampleConfiguration extends GlobalConfiguration {
             Pattern pattern = Pattern.compile("^[A-Za-z\\s-]+$");
             Matcher matcher = pattern.matcher(value);
             if(!matcher.matches()){
-                name="";
+                setName("");
                 return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
             }
         }
