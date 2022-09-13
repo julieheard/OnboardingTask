@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: OnboardingTask-$NEXT_MINOR_VERSION
