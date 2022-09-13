@@ -8,6 +8,9 @@ import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * I have taken the global configuration plugin archetype and built on top of it
  */
@@ -49,9 +52,19 @@ public class SampleConfiguration extends GlobalConfiguration {
         save();
     }
 
-    public FormValidation doCheckLabel(@QueryParameter String value) {
+    public FormValidation doCheckName(@QueryParameter String value) {
+
+        //Empty name check
         if (StringUtils.isEmpty(value)) {
-            return FormValidation.warning("Please specify a label.");
+            return FormValidation.warning("Please specify a name.");
+        }else{
+            //Check format of name (letters and hyphens only)
+            Pattern pattern = Pattern.compile("^[A-Za-z\\s-]+$");
+            Matcher matcher = pattern.matcher(value);
+            if(!matcher.matches()){
+                name="";
+                return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
+            }
         }
         return FormValidation.ok();
     }
