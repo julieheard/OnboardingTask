@@ -9,7 +9,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 /**
- * Example of Jenkins global configuration.
+ * I have taken the global configuration plugin archetype and built on top of it
  */
 @Extension
 public class SampleConfiguration extends GlobalConfiguration {
@@ -19,7 +19,8 @@ public class SampleConfiguration extends GlobalConfiguration {
         return ExtensionList.lookupSingleton(SampleConfiguration.class);
     }
 
-    private String label;
+    private String name;
+    private String description;
 
     public SampleConfiguration() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -27,17 +28,24 @@ public class SampleConfiguration extends GlobalConfiguration {
     }
 
     /** @return the currently configured label, if any */
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
+    public String getDescription(){ return description; }
 
     /**
-     * Together with {@link #getLabel}, binds to entry in {@code config.jelly}.
-     * @param label the new value of this field
+     * Together with {@link #getName}, binds to entry in {@code config.jelly}.
+     * @param name the new value of this field
      */
     @DataBoundSetter
-    public void setLabel(String label) {
-        this.label = label;
+    public void setName(String name) {
+        this.name = name;
+        save();
+    }
+
+    @DataBoundSetter
+    public void setDescription(String description) {
+        this.description = description;
         save();
     }
 

@@ -24,15 +24,15 @@ public class SampleConfigurationTest {
     @Test
     public void uiAndStorage() throws Throwable {
         sessions.then(r -> {
-            assertNull("not set initially", SampleConfiguration.get().getLabel());
+            assertNull("not set initially", SampleConfiguration.get().getName());
             HtmlForm config = r.createWebClient().goTo("configure").getFormByName("config");
-            HtmlTextInput textbox = config.getInputByName("_.label");
+            HtmlTextInput textbox = config.getInputByName("_.name");
             textbox.setText("hello");
             r.submit(config);
-            assertEquals("global config page let us edit it", "hello", SampleConfiguration.get().getLabel());
+            assertEquals("global config page let us edit it", "hello", SampleConfiguration.get().getName());
         });
         sessions.then(r -> {
-            assertEquals("still there after restart of Jenkins", "hello", SampleConfiguration.get().getLabel());
+            assertEquals("still there after restart of Jenkins", "hello", SampleConfiguration.get().getName());
         });
     }
 
