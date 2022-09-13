@@ -42,8 +42,10 @@ public class SampleConfiguration extends GlobalConfiguration {
      */
     @DataBoundSetter
     public void setName(String name) {
-        this.name = name;
-        save();
+        if(name.length()!=0 && nameFormatCheck(name)) {
+            this.name = name;
+            save();
+        }
     }
 
     @DataBoundSetter
@@ -59,14 +61,17 @@ public class SampleConfiguration extends GlobalConfiguration {
             return FormValidation.warning("Please specify a name.");
         }else{
             //Check format of name (letters and hyphens only)
-            Pattern pattern = Pattern.compile("^[A-Za-z\\s-]+$");
-            Matcher matcher = pattern.matcher(value);
-            if(!matcher.matches()){
-                name="";
+            if(!nameFormatCheck(value)){
                 return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
             }
         }
         return FormValidation.ok();
+    }
+
+    private boolean nameFormatCheck(String name){
+        Pattern pattern = Pattern.compile("^[A-Za-z\\s-]+$");
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
     }
 
 }
