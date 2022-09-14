@@ -106,8 +106,6 @@ public class OnboardingTask extends GlobalConfiguration {
     }
 
     public FormValidation doCheckUsername(@QueryParameter String username) {
-
-        //Empty username check
         if (!nameFormatCheck(username)){
                 return FormValidation.warning("Please enter a valid username (letters and hyphens only).");
         }
