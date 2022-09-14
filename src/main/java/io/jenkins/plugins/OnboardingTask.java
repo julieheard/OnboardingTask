@@ -99,7 +99,7 @@ public class OnboardingTask extends GlobalConfiguration {
         }else{
             //Check format of name (letters and hyphens only)
             if(!nameFormatCheck(name)){
-                return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
+                return FormValidation.warning("Please enter a valid name (letters only, no spaces).");
             }
         }
         return FormValidation.ok();
@@ -107,7 +107,7 @@ public class OnboardingTask extends GlobalConfiguration {
 
     public FormValidation doCheckUsername(@QueryParameter String username) {
         if (!nameFormatCheck(username)){
-                return FormValidation.warning("Please enter a valid username (letters and hyphens only).");
+                return FormValidation.warning("Please enter a valid username (letters only, no spaces).");
         }
         return FormValidation.ok();
     }
