@@ -38,7 +38,7 @@ public class OnboardingTaskTest {
 
     @Test
     public void nameFormatCheckTest(){
-       //Valid names only contain letters only, no spaces
+       //Valid names contain letters only, no spaces or symbols
         String name =  "Julie";
         assertTrue((name), true);
         name =  "Julie1234";
