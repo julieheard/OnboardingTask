@@ -2,13 +2,19 @@ package io.jenkins.plugins;
 
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.model.Item;
+import hudson.model.Job;
+import hudson.util.FormFieldValidator;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+import jenkins.model.Jenkins;
 import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.DataBoundSetter;
-import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.*;
+import org.kohsuke.stapler.verb.POST;
 
+import javax.servlet.ServletException;
+import java.io.IOException;
 import java.security.Security;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,34 +36,50 @@ public class OnboardingTask extends GlobalConfiguration {
     private String username;
     private Secret password;
 
-
-
-
-
     public OnboardingTask() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
 
+    @POST
+    public FormValidation doTestConnection(@QueryParameter("username") final String username,
+                                           @QueryParameter("password") final String password,
+                                           @AncestorInPath Job job) throws IOException, ServletException {
+        try {
+            if (job == null) {
+                Jenkins.get().checkPermission(Jenkins.ADMINISTER);
+            } else {
+                job.checkPermission(Item.CONFIGURE);
+            }
 
-    public String getName() {
-        return name;
+            return FormValidation.ok("Success");
+        } catch (Exception  e) {
+            return FormValidation.error("Client error : "+e.getMessage());
+        }
     }
-    public String getDescription(){ return description; }
-    public String getURL() {
-        return url;
+
+    public FormValidation doCheckUsername(@QueryParameter String username) {
+        //Valid username is letters only
+        if (!nameFormatCheck(username)){
+                return FormValidation.warning("Please enter a valid username (letters only).");
+        }
+        return FormValidation.ok();
     }
-    public String getUsername() {
-        return username;
-    }
-    public Secret getPassword() {
-        return password;
-    }
+
 
     /**
-     * Together with {@link #getName}, binds to entry in {@code config.jelly}.
-     * @param name the new value of this field
+     * Checks if a name is a valid format.
+     * A valid name contains only letters, no numbers or symbols.
+     * @param name, this is entered by the user
+     * @return true if the name is valid
      */
+    private boolean nameFormatCheck(String name){
+        Pattern pattern = Pattern.compile("^[A-Za-z]+$");
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
+    }
+
+
     @DataBoundSetter
     public void setName(String name) {
         if(name.length()!=0 && nameFormatCheck(name)) {
@@ -91,36 +113,10 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-    public FormValidation doCheckName(@QueryParameter String name) {
-        //Empty name check
-        if (StringUtils.isEmpty(name)) {
-            return FormValidation.warning("Please specify a name.");
-        }else{
-            //Check format of name (letters only)
-            if(!nameFormatCheck(name)){
-                return FormValidation.warning("Please enter a valid name (letters only, no spaces).");
-            }
-        }
-        return FormValidation.ok();
-    }
-
-    public FormValidation doCheckUsername(@QueryParameter String username) {
-        if (!nameFormatCheck(username)){
-                return FormValidation.warning("Please enter a valid username (letters only, no spaces).");
-        }
-        return FormValidation.ok();
-    }
-
-    /**
-     * Checks if a name is a valid format.
-     * A valid name contains only letters, no numbers or symbols.
-     * @param name, this is entered by the user
-     * @return true if the name is valid
-     */
-    private boolean nameFormatCheck(String name){
-        Pattern pattern = Pattern.compile("^[A-Za-z]+$");
-        Matcher matcher = pattern.matcher(name);
-        return matcher.matches();
-    }
+    public String getName() { return name; }
+    public String getDescription(){ return description; }
+    public String getURL() { return url; }
+    public String getUsername() { return username; }
+    public Secret getPassword() { return password; }
 
 }
