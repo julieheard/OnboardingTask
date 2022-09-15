@@ -92,12 +92,11 @@ public class OnboardingTask extends GlobalConfiguration {
     }
 
     public FormValidation doCheckName(@QueryParameter String name) {
-
         //Empty name check
         if (StringUtils.isEmpty(name)) {
             return FormValidation.warning("Please specify a name.");
         }else{
-            //Check format of name (letters and hyphens only)
+            //Check format of name (letters only)
             if(!nameFormatCheck(name)){
                 return FormValidation.warning("Please enter a valid name (letters only, no spaces).");
             }
