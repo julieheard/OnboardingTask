@@ -1,4 +1,4 @@
-package io.jenkins.plugins.sample;
+package io.jenkins.plugins;
 
 import hudson.Extension;
 import hudson.ExtensionList;
@@ -15,22 +15,22 @@ import java.util.regex.Pattern;
  * I have taken the global configuration plugin archetype and built on top of it
  */
 @Extension
-public class SampleConfiguration extends GlobalConfiguration {
+public class OnboardingTask extends GlobalConfiguration {
 
     /** @return the singleton instance */
-    public static SampleConfiguration get() {
-        return ExtensionList.lookupSingleton(SampleConfiguration.class);
+    public static OnboardingTask get() {
+        return ExtensionList.lookupSingleton(OnboardingTask.class);
     }
 
     private String name;
     private String description;
 
-    public SampleConfiguration() {
+    public OnboardingTask() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
 
-    /** @return the currently configured label, if any */
+    /** @return the currently configured name, if any */
     public String getName() {
         return name;
     }
@@ -42,8 +42,10 @@ public class SampleConfiguration extends GlobalConfiguration {
      */
     @DataBoundSetter
     public void setName(String name) {
-        this.name = name;
-        save();
+        if(name.length()!=0 && nameFormatCheck(name)) {
+            this.name = name;
+            save();
+        }
     }
 
     @DataBoundSetter
@@ -59,14 +61,23 @@ public class SampleConfiguration extends GlobalConfiguration {
             return FormValidation.warning("Please specify a name.");
         }else{
             //Check format of name (letters and hyphens only)
-            Pattern pattern = Pattern.compile("^[A-Za-z\\s-]+$");
-            Matcher matcher = pattern.matcher(value);
-            if(!matcher.matches()){
-                setName("");
+            if(!nameFormatCheck(value)){
                 return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
             }
         }
         return FormValidation.ok();
+    }
+
+    /**
+     * Checks if a name is a valid format.
+     * A valid name contains only letters, no numbers or symbols.
+     * @param name, this is entered by the user
+     * @return true if the name is valid
+     */
+    private boolean nameFormatCheck(String name){
+        Pattern pattern = Pattern.compile("^[A-Za-z]+$");
+        Matcher matcher = pattern.matcher(name);
+        return matcher.matches();
     }
 
 }

@@ -1,4 +1,4 @@
-package io.jenkins.plugins.sample;
+package io.jenkins.plugins;
 
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.jvnet.hudson.test.JenkinsSessionRule;
 
-public class SampleConfigurationTest {
+public class OnboardingTaskTest {
 
     @Rule
     public JenkinsSessionRule sessions = new JenkinsSessionRule();
@@ -24,16 +24,27 @@ public class SampleConfigurationTest {
     @Test
     public void uiAndStorage() throws Throwable {
         sessions.then(r -> {
-            assertNull("not set initially", SampleConfiguration.get().getName());
+            assertNull("not set initially", OnboardingTask.get().getName());
             HtmlForm config = r.createWebClient().goTo("configure").getFormByName("config");
             HtmlTextInput textbox = config.getInputByName("_.name");
             textbox.setText("hello");
             r.submit(config);
-            assertEquals("global config page let us edit it", "hello", SampleConfiguration.get().getName());
+            assertEquals("global config page let us edit it", "hello", OnboardingTask.get().getName());
         });
         sessions.then(r -> {
-            assertEquals("still there after restart of Jenkins", "hello", SampleConfiguration.get().getName());
+            assertEquals("still there after restart of Jenkins", "hello", OnboardingTask.get().getName());
         });
+    }
+
+    @Test
+    public void nameFormatCheckTest(){
+       //Valid names contain letters only, no spaces or symbols
+        String name =  "Julie";
+        assertTrue((name), true);
+        name =  "Julie1234";
+        assertFalse((name), false);
+        name =  "Julie&^%$";
+        assertFalse((name), false);
     }
 
 }
