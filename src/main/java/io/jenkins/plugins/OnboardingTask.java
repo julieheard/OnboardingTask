@@ -1,6 +1,7 @@
 package io.jenkins.plugins;
 
 import hudson.Extension;
+
 import hudson.ExtensionList;
 import hudson.model.Item;
 import hudson.model.Job;
@@ -53,7 +54,7 @@ public class OnboardingTask extends GlobalConfiguration {
             }
 
             return FormValidation.ok("Success");
-        } catch (Exception  e) {
+        } catch (Exception e) {
             return FormValidation.error("Client error : "+e.getMessage());
         }
     }
@@ -94,7 +95,6 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-
     @DataBoundSetter
     public void setURL(String url) {
         this.url = url;
@@ -103,8 +103,11 @@ public class OnboardingTask extends GlobalConfiguration {
 
     @DataBoundSetter
     public void setUsername(String username) {
-        this.username = username;
-        save();
+        //Username can only contain letters
+        if(nameFormatCheck(username)) {
+            this.username = username;
+            save();
+        }
     }
 
     @DataBoundSetter
