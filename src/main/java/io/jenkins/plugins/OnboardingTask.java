@@ -1,24 +1,28 @@
 package io.jenkins.plugins;
 
-import hudson.Extension;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import javax.servlet.ServletException;
+import org.springframework.http.HttpHeaders;
 
+import org.kohsuke.stapler.AncestorInPath;
+import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.verb.POST;
+
+import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.model.Item;
 import hudson.model.Job;
-import hudson.util.FormFieldValidator;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import jenkins.model.Jenkins;
-import org.apache.commons.lang.StringUtils;
-import org.kohsuke.stapler.*;
-import org.kohsuke.stapler.verb.POST;
-
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.security.Security;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * I have taken the global configuration plugin archetype and built on top of it
@@ -33,9 +37,7 @@ public class OnboardingTask extends GlobalConfiguration {
 
     private String name;
     private String description;
-    private String url;
-    private String username;
-    private Secret password;
+    private Credentials connectionCredentials;
 
     public OnboardingTask() {
         // When Jenkins is restarted, load any saved configuration from disk.
@@ -43,30 +45,80 @@ public class OnboardingTask extends GlobalConfiguration {
     }
 
     @POST
-    public FormValidation doTestConnection(@QueryParameter("username") final String username,
-                                           @QueryParameter("password") final String password,
-                                           @AncestorInPath Job job) throws IOException, ServletException {
+    public FormValidation doTestConnection(@QueryParameter("username") String username,
+                                           @QueryParameter("password") Secret password,
+                                           @QueryParameter("url") String url) throws IOException  {
         try {
-            if (job == null) {
-                Jenkins.get().checkPermission(Jenkins.ADMINISTER);
-            } else {
-                job.checkPermission(Item.CONFIGURE);
-            }
+            if (!nameFormatCheck(username)){
+                return FormValidation.warning("You need to enter a valid name. Letters only, no spaces.");
+            }else {
+                if (!checkForValidURL(url)) {
+                    return FormValidation.warning("Your URL is not correct. Please enter a valid URL.");
+                }
+                else{
+                    //You can use https://onboardingtask.free.beeceptor.com/ to test
+                    URL newURL = new URL(url);
+                    connectionCredentials = new Credentials(username, password, newURL);
+                    save();
 
-            return FormValidation.ok("Success");
+                    //This runs an HTTP request on this objects URL, username and password and returns an HTTP response code
+                    int httpRequestResponseCode = sendHTTPRequest();
+
+                    if (httpRequestResponseCode != 200) {
+                        return FormValidation.warning(
+                                "Connection refused, Http warning code: " + httpRequestResponseCode + "."
+                                + " Please check your URL and credentials and try again");
+                    }
+                }
+            }
+            return FormValidation.ok("Success!");
         } catch (Exception e) {
-            return FormValidation.error("Client error : "+e.getMessage());
+            return FormValidation.error("Client error : " + e.getMessage());
         }
     }
 
+    /**
+     * This runs an HTTP request on this objects URL, username and password and returns an HTTP response code
+     * @return the int returned represents the response code from the HTTP request
+     */
+    private int sendHTTPRequest() throws IOException {
+        int responseCode = 0;
+            HttpURLConnection httpURLConnection = (HttpURLConnection) connectionCredentials.getUrl().openConnection();
+            httpURLConnection.setRequestMethod("POST");
+            httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, connectionCredentials.getFormattedCredentials());
+            responseCode = httpURLConnection.getResponseCode();
+        return responseCode;
+    }
+
+    /**
+     * This tests if the URL is valid in that it should not generate any exceptions when used
+     * @param url this is from the url input box
+     * @return if it is a valid URL, this means the URL should not generate a URLMalformedException
+     */
+    private boolean checkForValidURL(String url){
+        try {
+            URL obj = new URL(url);
+            obj.toURI();
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        } catch (URISyntaxException e) {
+            return false;
+        }
+    }
+
+    /**
+     * This checks the username to make sure it only has letters only, no spaces or symbols
+     * @param username this is the username typed into the username box
+     * @return warning if not valid, ok if valid
+     */
     public FormValidation doCheckUsername(@QueryParameter String username) {
         //Valid username is letters only
-        if (!nameFormatCheck(username)){
-                return FormValidation.warning("Please enter a valid username (letters only).");
+        if (!nameFormatCheck(username)) {
+            return FormValidation.warning("Please enter a valid username (letters only).");
         }
         return FormValidation.ok();
     }
-
 
     /**
      * Checks if a name is a valid format.
@@ -80,6 +132,13 @@ public class OnboardingTask extends GlobalConfiguration {
         return matcher.matches();
     }
 
+    @DataBoundSetter
+    public void connectionCredentials(Credentials credentials){
+        if(credentials.getUsername().length() != 0 &&nameFormatCheck(credentials.getUsername())) {
+            this.connectionCredentials = credentials;
+            save();
+        }
+    }
 
     @DataBoundSetter
     public void setName(String name) {
@@ -95,31 +154,11 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-    @DataBoundSetter
-    public void setURL(String url) {
-        this.url = url;
-        save();
-    }
-
-    @DataBoundSetter
-    public void setUsername(String username) {
-        //Username can only contain letters
-        if(nameFormatCheck(username)) {
-            this.username = username;
-            save();
-        }
-    }
-
-    @DataBoundSetter
-    public void setPassword(Secret password) {
-        this.password = password;
-        save();
-    }
-
     public String getName() { return name; }
     public String getDescription(){ return description; }
-    public String getURL() { return url; }
-    public String getUsername() { return username; }
-    public Secret getPassword() { return password; }
+    public Credentials getConnectionCredentials(){
+        return this.connectionCredentials;
+    }
+
 
 }

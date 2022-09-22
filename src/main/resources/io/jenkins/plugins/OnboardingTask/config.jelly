@@ -13,11 +13,7 @@
 
         <f:block>
             <table>
-                <f:optionalBlock name="dynamic" title="Optional settings:">
-
-                    <f:entry field="url" title="${%URL}">
-                        <f:textbox/>
-                    </f:entry>
+                <f:optionalBlock checked="true" name="connection" title="Optional connection settings:">
 
                     <f:entry field="username" title="${%Username}">
                         <f:textbox/>
@@ -27,9 +23,13 @@
                         <f:password/>
                     </f:entry>
 
+                    <f:entry field="url" title="${%URL}">
+                        <f:textbox/>
+                    </f:entry>
+
                     <f:validateButton
                             title="${%Test Connection}" progress="${%Testing the connection...}"
-                            method="testConnection" with="password,username"/>
+                            method="testConnection" with="username,password,url"/>
                 </f:optionalBlock>
             </table>
         </f:block>
