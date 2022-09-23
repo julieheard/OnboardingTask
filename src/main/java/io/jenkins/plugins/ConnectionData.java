@@ -9,19 +9,21 @@ import hudson.Extension;
 import hudson.util.Secret;
 
 @Extension
-public class Credentials {
+public class ConnectionData {
 
     private String username;
     private Secret password;
     private URL url;
+    private String payload;
 
-    public Credentials(){}
+    public ConnectionData(){}
 
     @DataBoundConstructor
-    public Credentials(String username, Secret password, URL url) {
+    public ConnectionData(String username, Secret password, URL url) {
         this.username = username;
         this.password = password;
         this.url = url;
+        this.payload = ""; //default behaviour is to add payload after setting initial fields
     }
 
     /**
@@ -46,5 +48,9 @@ public class Credentials {
     public Secret getPassword(){
         return password;
     }
+
+    public String getPayload(){ return payload; }
+
+    public void setPayload(String payload){this.payload = payload;}
 
 }

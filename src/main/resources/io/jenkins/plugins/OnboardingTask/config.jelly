@@ -30,6 +30,10 @@
                     <f:validateButton
                             title="${%Test Connection}" progress="${%Testing the connection...}"
                             method="testConnection" with="username,password,url"/>
+                    <f:validateButton
+                            title="${%Test Payload}" progress="${%Testing the connection with the payload...}"
+                            method="testConnectionWithPayload" with="username,password,url"/>
+
                 </f:optionalBlock>
             </table>
         </f:block>
