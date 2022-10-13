@@ -102,7 +102,7 @@ public class OnboardingTask extends GlobalConfiguration {
                 //This adds a payload to the HTTP request
                 httpURLConnection.setDoOutput(true);
                 OutputStream os = httpURLConnection.getOutputStream();
-                os.write(temporaryPayload.getBytes());
+                os.write(temporaryPayload.getBytes(Charset.forName("UTF-8")));
                 os.flush();
                 os.close();
                 temporaryPayload = ""; //Set payload back to empty
