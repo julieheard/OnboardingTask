@@ -9,6 +9,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -17,7 +19,10 @@ import org.kohsuke.stapler.verb.POST;
 import org.springframework.http.HttpHeaders;
 import hudson.Extension;
 import hudson.ExtensionList;
+import hudson.model.Saveable;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
+import hudson.util.PersistedList;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 
@@ -31,7 +36,7 @@ public class OnboardingTask extends GlobalConfiguration {
     private String temporaryPayload;
     private String name;
     private String description;
-    private ArrayList<CategoryItem> CategoryList;
+    private PersistedList<Category> categories = new PersistedList<Category>(this);
 
 
     public static OnboardingTask get() {
@@ -42,6 +47,7 @@ public class OnboardingTask extends GlobalConfiguration {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
+
 
     /**
      * This method does exactly the same as doTestConnection() but also sends a payload.
@@ -178,14 +184,27 @@ public class OnboardingTask extends GlobalConfiguration {
         return matcher.matches();
     }
 
-    public String getName() {
-        return name;
+    public synchronized PersistedList<Category> getCategories(){
+        return categories;
     }
 
+    /*public synchronized ListBoxModel doFillCategoriesItems() {
+        ListBoxModel items = new ListBoxModel();
+        items.add("Test Item");
+        for (Category item :this.categories) {
+            items.add(item.getCategoryName());
+        }
+        return items;
+    }*/
 
     @DataBoundSetter
-    public void addCategoryItem(String value){
-        CategoryList.add(new CategoryItem(value));
+    public synchronized void setCategories(PersistedList<Category> categories){
+        this.categories = categories;
+        save();
+    }
+
+    public List<Category.DescriptorImpl> getCategoryDescriptors(){
+        return ExtensionList.lookup(Category.DescriptorImpl.class);
     }
 
     @DataBoundSetter
@@ -204,6 +223,10 @@ public class OnboardingTask extends GlobalConfiguration {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getName() {
+        return name;
     }
 
 

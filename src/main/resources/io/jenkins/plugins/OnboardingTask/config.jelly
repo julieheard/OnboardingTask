@@ -11,6 +11,12 @@
             <f:textarea/>
         </f:entry>
 
+        <f:entry>
+        <f:hetero-list descriptors="${instance.categoryDescriptors}" name="categories"
+                       items="${instance.categories}"/>
+        </f:entry>
+
+        <!-- This is the block for the optional URL testing settings -->
         <f:block>
             <table>
                 <f:optionalBlock checked="true" name="connection" title="Optional connection settings:">
@@ -39,4 +45,6 @@
         </f:block>
 
     </f:section>
+
+
 </j:jelly>
