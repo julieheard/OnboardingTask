@@ -1,4 +1,4 @@
-package io.jenkins.plugins;
+package io.jenkins.plugins.OnboardingTask;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,9 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,9 +17,7 @@ import org.kohsuke.stapler.verb.POST;
 import org.springframework.http.HttpHeaders;
 import hudson.Extension;
 import hudson.ExtensionList;
-import hudson.model.Saveable;
 import hudson.util.FormValidation;
-import hudson.util.ListBoxModel;
 import hudson.util.PersistedList;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
@@ -188,24 +184,15 @@ public class OnboardingTask extends GlobalConfiguration {
         return categories;
     }
 
-    /*public synchronized ListBoxModel doFillCategoriesItems() {
-        ListBoxModel items = new ListBoxModel();
-        items.add("Test Item");
-        for (Category item :this.categories) {
-            items.add(item.getCategoryName());
-        }
-        return items;
-    }*/
-
     @DataBoundSetter
     public synchronized void setCategories(PersistedList<Category> categories){
         this.categories = categories;
         save();
     }
 
-    public List<Category.DescriptorImpl> getCategoryDescriptors(){
-        return ExtensionList.lookup(Category.DescriptorImpl.class);
-    }
+   // public List<Category.DescriptorImpl> getCategoryDescriptors(){
+    //    return ExtensionList.lookup(Category.DescriptorImpl.class);
+   // }
 
     @DataBoundSetter
     public void setName(String name) {

@@ -13,8 +13,9 @@
 
         <f:entry>
         <f:hetero-list descriptors="${instance.categoryDescriptors}" name="categories"
-                       items="${instance.categories}"/>
+                       items="${instance.categories}" />
         </f:entry>
+
 
         <!-- This is the block for the optional URL testing settings -->
         <f:block>
