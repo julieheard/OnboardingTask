@@ -7,7 +7,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,7 +20,6 @@ import org.springframework.http.HttpHeaders;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
-import hudson.util.PersistedList;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 
@@ -32,7 +33,7 @@ public class OnboardingTask extends GlobalConfiguration {
     private String temporaryPayload;
     private String name;
     private String description;
-    private PersistedList<Category> categories = new PersistedList<Category>(this);
+    private List<Category> categories = new ArrayList<>();
 
 
     public static OnboardingTask get() {
@@ -180,12 +181,12 @@ public class OnboardingTask extends GlobalConfiguration {
         return matcher.matches();
     }
 
-    public synchronized PersistedList<Category> getCategories(){
+    public synchronized List<Category> getCategories(){
         return categories;
     }
 
     @DataBoundSetter
-    public synchronized void setCategories(PersistedList<Category> categories){
+    public synchronized void setCategories(List<Category> categories){
         this.categories = categories;
         save();
     }

@@ -5,27 +5,32 @@ import java.util.UUID;
 import hudson.Extension;
 import hudson.ExtensionList;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.Descriptor;
 
-
 public class Category extends AbstractDescribableImpl<Category> {
 
+    private String name;
     private UUID uuid;
-    private String categoryName;
 
     @DataBoundConstructor
-    public Category(String categoryName, UUID uuid) {
-        this.categoryName = categoryName;
+    public Category(String name, String uuid) {
+        this.name = name;
         this.uuid = java.util.UUID.randomUUID();
     }
 
-    public UUID getUuid() {
-        return uuid;
+    public String getUuid() {
+        return String.valueOf(uuid);
     }
 
-    public String getCategoryName() {
-        return categoryName;
+    public String getName() {
+        return name;
+    }
+
+    @DataBoundSetter
+    public void setName(String name){
+        this.name = name;
     }
 
     @Override
