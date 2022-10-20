@@ -190,6 +190,7 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
+    //This helps link the Categories class to the categories dropdown box on global config page
     public List<Category.DescriptorImpl> getCategoryDescriptors(){
        return ExtensionList.lookup(Category.DescriptorImpl.class);
     }

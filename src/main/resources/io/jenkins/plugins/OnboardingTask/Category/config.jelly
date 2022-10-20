@@ -1,13 +1,13 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
-
+    Categories:
     <f:entry field="${it.categoryName}" title="${%category name}">
         <f:textbox/>
     </f:entry>
 
-    <f:entry field="${it.uuid}" title="${%uuid}" >
-        <f:readOnlyTextbox/>
-    </f:entry>
+    <f:invisibleEntry>
+        <f:readOnlyTextbox field="${it.uuid}"/>
+    </f:invisibleEntry>
 
 </j:jelly>
