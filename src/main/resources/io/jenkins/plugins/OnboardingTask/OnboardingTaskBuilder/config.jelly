@@ -1,0 +1,13 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:f="/lib/form">
+
+    <f:dropdownList name="category" title="Categories">
+        <j:forEach var="descriptor" items="${it.categoryDescriptors}" varStatus="loop">
+            <j:set var="category" value="${descriptor==OnboardingTask.categories.descriptor?category.name:null}"/>
+            <f:dropdownListBlock title="${descriptor.displayName}" value="${loop.index}"
+                                 selected="${category!=null}" staplerClass="${descriptor.clazz.name}">
+                <st:include page="${descriptor.configPage}" from="${descriptor}"/>
+            </f:dropdownListBlock>
+        </j:forEach>
+    </f:dropdownList>
+</j:jelly>
