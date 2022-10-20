@@ -190,9 +190,9 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-   // public List<Category.DescriptorImpl> getCategoryDescriptors(){
-    //    return ExtensionList.lookup(Category.DescriptorImpl.class);
-   // }
+    public List<Category.DescriptorImpl> getCategoryDescriptors(){
+       return ExtensionList.lookup(Category.DescriptorImpl.class);
+    }
 
     @DataBoundSetter
     public void setName(String name) {

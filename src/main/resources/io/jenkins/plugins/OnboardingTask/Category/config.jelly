@@ -6,7 +6,7 @@
         <f:textbox/>
     </f:entry>
 
-    <f:entry field="${it.uuid}" title="${%uuid}">
+    <f:entry field="${it.uuid}" title="${%uuid}" >
         <f:readOnlyTextbox/>
     </f:entry>
 
