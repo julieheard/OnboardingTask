@@ -8,33 +8,27 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
+
 import java.io.IOException;
 
 public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
-    private Category chosenCategory;
+    private String category;
 
     @DataBoundConstructor
-    public OnboardingTaskBuilder(Category chosenCategory){
-        this.chosenCategory = chosenCategory;
+    public OnboardingTaskBuilder(String category){
+        this.category = category;
     }
 
-    public Category getChosenCategory(){
-        return chosenCategory;
+    public String getCategory(){
+        return category;
     }
 
-    @DataBoundSetter
-    public void setChosenCategory(Category chosenCategory){
-        this.chosenCategory = chosenCategory;
-    }
-
-    @Override
+     @Override
     public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
         //Would put run.addAction(new OnboardingTaskACTION (params)); here when ACTION class is made
-        listener.getLogger().println("Chosen Category is ...");
+        listener.getLogger().println("Chosen Category is ..." + this.getCategory());
     }
 
 
@@ -52,7 +46,7 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
         @Override //name for this instance
         public String getDisplayName(){
-            //You will see this as part of the build step
+            //this is the text for the build step
             return "Onboarding Task";
         }
 
