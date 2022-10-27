@@ -58,7 +58,6 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
         public ListBoxModel doFillCategoryItems() {
             ListBoxModel listBox = new ListBoxModel();
 
-            listBox.add("TestItem", "TestItem");
             for (Category item : ExtensionList.lookupSingleton(OnboardingTask.class).getCategories()) {
                 listBox.add(item.getName(), item.getName());
             }
