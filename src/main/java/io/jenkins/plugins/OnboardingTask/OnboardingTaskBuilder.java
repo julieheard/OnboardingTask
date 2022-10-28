@@ -10,28 +10,36 @@ import hudson.util.ListBoxModel;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
-
 import java.io.IOException;
+import java.util.*;
 
+//TODO: bugFix = when you select a cetegory from the build settings,
+//               if you close and reopen it goes back to the first item in the categories list
+//               If you see the output the correct category is saved despite the wrong one showing on refresh
 public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
-    private String category;
+    private Category category;
 
     @DataBoundConstructor
     public OnboardingTaskBuilder(String category) {
-        this.category = category;
+        List<Category> categories = ExtensionList.lookupSingleton(OnboardingTask.class).getCategories();
+        for (Category c :categories) {
+            if(c.getName().equals(category)){
+                this.category = c;
+                break;
+            }
+        }
     }
 
-    public String getCategory() {
+    public Category getCategory() {
         return category;
     }
 
     @Override
     public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-        //Would put run.addAction(new OnboardingTaskACTION (params)); here when ACTION class is made
-        listener.getLogger().println("Chosen Category is ..." + this.getCategory());
+        listener.getLogger().println("Chosen Category is: " + this.getCategory().getName());
+        ((DescriptorImpl)getDescriptor()).addBuild(run, category);
     }
-
 
     //This 'symbol' shows up in the pipeline step as the step name.
     //Also makes the generated pipeline step script more compact
@@ -41,6 +49,27 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
         public DescriptorImpl() {
             load();
+        }
+
+        private Queue<BuildAndCategory> buildQueue = new LinkedList<>();
+        private HashMap<String, String> categoriesLatestJob = new HashMap<>();
+
+        public void addBuild(Run<?, ?> run, Category category) {
+            if (Objects.nonNull(buildQueue) && buildQueue.size() >= 5) {
+                buildQueue.remove();
+            }
+            buildQueue.add(new BuildAndCategory(run.getExternalizableId(), category));
+            categoriesLatestJob.put(category.getUuid().toString(), run.getParent().getFullName());
+            save();
+        }
+
+        public String getBuildUrl(BuildAndCategory build) {
+            Run<?, ?> run = Run.fromExternalizableId(build.getBuildId());
+            return run != null ? run.getAbsoluteUrl() : null;
+        }
+
+        public String getLastJobName(Category category) {
+            return categoriesLatestJob.getOrDefault(category.getUuid().toString(), null);
         }
 
         @Override
@@ -58,13 +87,38 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
         public ListBoxModel doFillCategoryItems() {
             ListBoxModel listBox = new ListBoxModel();
 
-            listBox.add("TestItem", "TestItem");
             for (Category item : ExtensionList.lookupSingleton(OnboardingTask.class).getCategories()) {
                 listBox.add(item.getName(), item.getName());
             }
             return listBox;
         }
 
+    }
+
+    private static class BuildAndCategory {
+        private String buildId;
+        private Category category;
+
+        public BuildAndCategory(String buildId, Category category) {
+            this.buildId = buildId;
+            this.category = category;
+        }
+
+        public String getBuildId() {
+            return buildId;
+        }
+
+        public void setBuildId(String buildId) {
+            this.buildId = buildId;
+        }
+
+        public Category getCategory() {
+            return category;
+        }
+
+        public void setCategory(Category category) {
+            this.category = category;
+        }
     }
 
 }
