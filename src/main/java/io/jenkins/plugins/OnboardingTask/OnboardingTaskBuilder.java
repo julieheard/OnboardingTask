@@ -37,9 +37,10 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
     @Override
     public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener) throws InterruptedException, IOException {
-        listener.getLogger().println("Chosen Category is: " + this.getCategory().getName());
-        ((DescriptorImpl)getDescriptor()).addBuild(run, category);
+        ((DescriptorImpl) getDescriptor()).addBuild(run, category);
+        ((DescriptorImpl) getDescriptor()).printBuildQueue(listener);
     }
+
 
     //This 'symbol' shows up in the pipeline step as the step name.
     //Also makes the generated pipeline step script more compact
@@ -63,9 +64,13 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             save();
         }
 
-        public String getBuildUrl(BuildAndCategory build) {
-            Run<?, ?> run = Run.fromExternalizableId(build.getBuildId());
-            return run != null ? run.getAbsoluteUrl() : null;
+        public Queue<BuildAndCategory> getBuildQueue() {
+            return buildQueue;
+        }
+
+        public String getBuildUrl(String id) {
+            Run<?, ?> run = Run.fromExternalizableId(id);
+            return run != null ? run.getUrl() : null;
         }
 
         public String getLastJobName(Category category) {
@@ -93,6 +98,20 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             return listBox;
         }
 
+        private void printBuildQueue(TaskListener listener) {
+            listener.getLogger().println("Here is the detail for the last 5 jobs: ");
+
+            Iterator<BuildAndCategory> iterator = buildQueue.iterator();
+            while (iterator.hasNext()) {
+                BuildAndCategory temp = iterator.next();
+                listener.getLogger().println(
+                        "\t Build ID" + temp.buildId +
+                                "\t Category name : " + temp.category.getName() +
+                                "\t Category UUID : " + temp.category.getUuid()
+                );
+            }
+        }
+        
     }
 
     private static class BuildAndCategory {
