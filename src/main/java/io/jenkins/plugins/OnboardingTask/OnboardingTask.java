@@ -9,12 +9,10 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import hudson.util.ListBoxModel;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -37,6 +35,7 @@ public class OnboardingTask extends GlobalConfiguration {
     private String name;
     private String description;
     private List<Category> categories = new ArrayList<>();
+    private String lastJobRun;
 
     public static OnboardingTask get() {
         return ExtensionList.lookupSingleton(OnboardingTask.class);
@@ -200,6 +199,16 @@ public class OnboardingTask extends GlobalConfiguration {
     //This helps link the Categories class to the categories dropdown box on global config page
     public List<Category.DescriptorImpl> getCategoryDescriptors(){
        return ExtensionList.lookup(Category.DescriptorImpl.class);
+    }
+
+    public synchronized String getLastJobRun(){
+        return lastJobRun;
+    }
+
+    @DataBoundSetter
+    public void setLastJobRun(String name){
+        lastJobRun = name;
+        save();
     }
 
     @DataBoundSetter
