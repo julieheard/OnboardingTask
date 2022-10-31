@@ -60,7 +60,7 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
                 buildQueue.remove();
             }
             buildQueue.add(new BuildAndCategory(run.getExternalizableId(), category));
-            categoriesLatestJob.put(category.getUuid().toString(), run.getParent().getFullName());
+            categoriesLatestJob.put(category.getName(), run.getParent().getFullName());
             save();
         }
 
@@ -98,6 +98,11 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             return listBox;
         }
 
+        /**
+         * This prints the last 5 items in the Queue for each of the categories selected in the job settings.
+         * If the job has 3 categories selected in the job settings, it will run this 3 times.
+         * @param listener allows us to print info to the console section of Jenkins
+         */
         private void printBuildQueue(TaskListener listener) {
             listener.getLogger().println("Here is the detail for the last 5 jobs: ");
 
@@ -105,7 +110,7 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             while (iterator.hasNext()) {
                 BuildAndCategory temp = iterator.next();
                 listener.getLogger().println(
-                        "\t Build ID" + temp.buildId +
+                        "\t Build ID : " + temp.buildId +
                                 "\t Category name : " + temp.category.getName() +
                                 "\t Category UUID : " + temp.category.getUuid()
                 );
