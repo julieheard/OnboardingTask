@@ -7,9 +7,12 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.ListBoxModel;
+import jenkins.model.item_category.Categories;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+
 import java.io.IOException;
 import java.util.*;
 
@@ -23,6 +26,8 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
     @DataBoundConstructor
     public OnboardingTaskBuilder(String category) {
         List<Category> categories = ExtensionList.lookupSingleton(OnboardingTask.class).getCategories();
+
+        //Sets the Category object in this class to be the selected category from the buildStep screen
         for (Category c :categories) {
             if(c.getName().equals(category)){
                 this.category = c;
@@ -33,6 +38,11 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
     public Category getCategory() {
         return category;
+    }
+
+    @DataBoundSetter
+    public void setCategory(Category category){
+        this.category = category;
     }
 
     @Override
@@ -54,7 +64,6 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
 
         private Queue<BuildAndCategory> buildQueue = new LinkedList<>();
         private HashMap<String, String> categoriesLatestJob = new HashMap<>();
-
         public void addBuild(Run<?, ?> run, Category category) {
             if (Objects.nonNull(buildQueue) && buildQueue.size() >= 5) {
                 buildQueue.remove();
@@ -65,18 +74,17 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             save();
         }
 
+
         public Queue<BuildAndCategory> getBuildQueue() {
             return buildQueue;
         }
         public HashMap<String, String> getCategoriesLatestJob(){
             return categoriesLatestJob;
         }
-
         public String getBuildUrl(String id) {
             Run<?, ?> run = Run.fromExternalizableId(id);
             return run != null ? run.getUrl() : null;
         }
-
         public String getLastJobName(Category category) {
             return categoriesLatestJob.getOrDefault(category.getUuid().toString(), null);
         }
