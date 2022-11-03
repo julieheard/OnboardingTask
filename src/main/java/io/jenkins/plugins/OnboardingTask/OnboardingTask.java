@@ -101,7 +101,16 @@ public class OnboardingTask extends GlobalConfiguration {
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setRequestMethod("POST");
         httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, getFormattedCredentials(username, password));
-        httpURLConnection.setConnectTimeout(20000); //set timeout to 20 seconds
+
+        //set connection timeout to 20 seconds
+        //the connection timeout is the timeout in making the initial connection
+        httpURLConnection.setConnectTimeout(20000);
+
+        //set read timeout to 20 seconds
+        // the read timeout is the timeout on waiting to read data.
+        // If the server (or network) fails to deliver any data <timeout> seconds after the client makes a socket read call,
+        // a read timeout error will be raised
+        httpURLConnection.setReadTimeout(20000);
 
         //If the payload has data in it, add the payload to the HTTP connection
         try {
