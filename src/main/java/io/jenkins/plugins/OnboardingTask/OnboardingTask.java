@@ -101,6 +101,7 @@ public class OnboardingTask extends GlobalConfiguration {
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setRequestMethod("POST");
         httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, getFormattedCredentials(username, password));
+        httpURLConnection.setConnectTimeout(20000); //set timeout to 20 seconds
 
         //If the payload has data in it, add the payload to the HTTP connection
         try {
