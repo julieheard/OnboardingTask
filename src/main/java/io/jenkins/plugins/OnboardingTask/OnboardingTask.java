@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import hudson.util.ListBoxModel;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
@@ -35,7 +37,6 @@ public class OnboardingTask extends GlobalConfiguration {
     private String description;
     private List<Category> categories = new ArrayList<>();
 
-
     public static OnboardingTask get() {
         return ExtensionList.lookupSingleton(OnboardingTask.class);
     }
@@ -45,20 +46,11 @@ public class OnboardingTask extends GlobalConfiguration {
         load();
     }
 
-
     /**
-     * This method does exactly the same as doTestConnection() but also sends a payload.
-     * There is a global temporaryPayload String which is set here and then erased when the payload is sent
-     * in sendHTTPRequest()
+     * This validates the params before sending data to sendHTTPRequest:
+     * This method sends the params for validation and collates the error messages,
+     * if no errors, sends the data to the sendHTTPRequest method
      */
-    @POST
-    public FormValidation doTestConnectionWithPayload(@QueryParameter("username") String username,
-                                                      @QueryParameter("password") Secret password,
-                                                      @QueryParameter("url") String url) {
-        temporaryPayload = password.getPlainText();
-        return doTestConnection(username, password, url);
-    }
-
     @POST
     public FormValidation doTestConnection(@QueryParameter("username") String username,
                                            @QueryParameter("password") Secret password,
@@ -84,6 +76,19 @@ public class OnboardingTask extends GlobalConfiguration {
         } catch (Exception e) {
             return FormValidation.error("Client error : " + e.getMessage());
         }
+    }
+
+    /**
+     * This method does exactly the same as doTestConnection() but also sends a payload.
+     * There is a global temporaryPayload String which is set here and then erased when the payload is sent
+     * in sendHTTPRequest()
+     */
+    @POST
+    public FormValidation doTestConnectionWithPayload(@QueryParameter("username") String username,
+                                                      @QueryParameter("password") Secret password,
+                                                      @QueryParameter("url") String url) {
+        temporaryPayload = password.getPlainText();
+        return doTestConnection(username, password, url);
     }
 
     /**
@@ -217,6 +222,5 @@ public class OnboardingTask extends GlobalConfiguration {
     public String getName() {
         return name;
     }
-
 
 }
