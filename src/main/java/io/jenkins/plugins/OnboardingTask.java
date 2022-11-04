@@ -1,28 +1,26 @@
 package io.jenkins.plugins;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.ServletException;
-import org.springframework.http.HttpHeaders;
 
-import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
+import org.springframework.http.HttpHeaders;
 
 import hudson.Extension;
 import hudson.ExtensionList;
-import hudson.model.Item;
-import hudson.model.Job;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
-import jenkins.model.Jenkins;
 
 /**
  * I have taken the global configuration plugin archetype and built on top of it
@@ -30,45 +28,55 @@ import jenkins.model.Jenkins;
 @Extension
 public class OnboardingTask extends GlobalConfiguration {
 
-    /** @return the singleton instance */
-    public static OnboardingTask get() {
-        return ExtensionList.lookupSingleton(OnboardingTask.class);
-    }
+    private String temporaryPayload;
 
     private String name;
     private String description;
-    private Credentials connectionCredentials;
+
+    /**
+     * @return the singleton instance
+     */
+    public static OnboardingTask get() {
+        return ExtensionList.lookupSingleton(OnboardingTask.class);
+    }
 
     public OnboardingTask() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
 
+    /**
+     * This method does exactly the same as doTestConnection() but also sends a payload.
+     * There is a global temporaryPayload String which is set here and then erased when the payload is sent
+     * in sendHTTPRequest()
+     */
+    @POST
+    public FormValidation doTestConnectionWithPayload(@QueryParameter("username") String username,
+                                                      @QueryParameter("password") Secret password,
+                                                      @QueryParameter("url") String url) {
+        temporaryPayload = password.getPlainText();
+        return doTestConnection(username, password, url);
+    }
+
     @POST
     public FormValidation doTestConnection(@QueryParameter("username") String username,
                                            @QueryParameter("password") Secret password,
-                                           @QueryParameter("url") String url) throws IOException  {
+                                           @QueryParameter("url") String url) {
         try {
-            if (!nameFormatCheck(username)){
-                return FormValidation.warning("You need to enter a valid name. Letters only, no spaces.");
-            }else {
-                if (!checkForValidURL(url)) {
-                    return FormValidation.warning("Your URL is not correct. Please enter a valid URL.");
-                }
-                else{
-                    //You can use https://onboardingtask.free.beeceptor.com/ to test
-                    URL newURL = new URL(url);
-                    connectionCredentials = new Credentials(username, password, newURL);
-                    save();
+            //I have grouped the validation calls and error message results into validateQueryParams
+            String errorMessage = validateQueryParams(url, username);
+            //If errors, return warning, otherwise safe to send HTTP request and return success
+            if (errorMessage.length() != 0) {
+                return FormValidation.warning(errorMessage);
+            } else {
 
-                    //This runs an HTTP request on this objects URL, username and password and returns an HTTP response code
-                    int httpRequestResponseCode = sendHTTPRequest();
+                //This runs an HTTP request on this objects URL, username and password and returns an HTTP response code
+                int httpRequestResponseCode = sendHTTPRequest(new URL(url), username, password);
 
-                    if (httpRequestResponseCode != 200) {
-                        return FormValidation.warning(
-                                "Connection refused, Http warning code: " + httpRequestResponseCode + "."
-                                + " Please check your URL and credentials and try again");
-                    }
+                if (httpRequestResponseCode != 200) {
+                    return FormValidation.warning(
+                            "Connection refused, Http warning code: " + httpRequestResponseCode + "."
+                            + " Please check your URL and credentials and try again");
                 }
             }
             return FormValidation.ok("Success!");
@@ -79,23 +87,63 @@ public class OnboardingTask extends GlobalConfiguration {
 
     /**
      * This runs an HTTP request on this objects URL, username and password and returns an HTTP response code
+     *
      * @return the int returned represents the response code from the HTTP request
      */
-    private int sendHTTPRequest() throws IOException {
+    private int sendHTTPRequest(URL url, String username, Secret password) throws IOException {
         int responseCode = 0;
-            HttpURLConnection httpURLConnection = (HttpURLConnection) connectionCredentials.getUrl().openConnection();
-            httpURLConnection.setRequestMethod("POST");
-            httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, connectionCredentials.getFormattedCredentials());
-            responseCode = httpURLConnection.getResponseCode();
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.setRequestProperty(HttpHeaders.AUTHORIZATION, getFormattedCredentials(username, password));
+
+        //If the payload has data in it, add the payload to the HTTP connection
+        try {
+            if (temporaryPayload.length() != 0) {
+                //This adds a payload to the HTTP request
+                httpURLConnection.setDoOutput(true);
+                OutputStream os = httpURLConnection.getOutputStream();
+                os.write(temporaryPayload.getBytes());
+                os.flush();
+                os.close();
+                temporaryPayload = ""; //Set payload back to empty
+            }
+        } catch (NullPointerException e) {
+            //This means the String is empty so no payload needs to be added
+        }
+
+        responseCode = httpURLConnection.getResponseCode();
         return responseCode;
     }
 
     /**
+     * Formats the username and password for basic authentication
+     *
+     * @return "Basic username : password" where "username : passsword" is a base 64 encoded string
+     */
+    public String getFormattedCredentials(String username, Secret password) {
+        String credentials = Base64.getEncoder().encodeToString(
+                (username + ":" + password).getBytes(Charset.forName("UTF-8")));
+        return "Basic " + credentials;
+    }
+
+    private String validateQueryParams(String url, String username) {
+        String errorMessage = "";
+        if (!nameFormatCheck(username)) {
+            errorMessage = errorMessage + "You need to enter a valid name. Letters only, no " + "spaces. ";
+        }
+        if (!checkForValidURL(url)) {
+            errorMessage = errorMessage + "Your URL is not correct. Please enter a valid URL. ";
+        }
+        return errorMessage;
+    }
+
+    /**
      * This tests if the URL is valid in that it should not generate any exceptions when used
+     *
      * @param url this is from the url input box
      * @return if it is a valid URL, this means the URL should not generate a URLMalformedException
      */
-    private boolean checkForValidURL(String url){
+    public boolean checkForValidURL(String url) {
         try {
             URL obj = new URL(url);
             obj.toURI();
@@ -126,23 +174,19 @@ public class OnboardingTask extends GlobalConfiguration {
      * @param name, this is entered by the user
      * @return true if the name is valid
      */
-    private boolean nameFormatCheck(String name){
+    private boolean nameFormatCheck(String name) {
         Pattern pattern = Pattern.compile("^[A-Za-z]+$");
         Matcher matcher = pattern.matcher(name);
         return matcher.matches();
     }
 
-    @DataBoundSetter
-    public void connectionCredentials(Credentials credentials){
-        if(credentials.getUsername().length() != 0 &&nameFormatCheck(credentials.getUsername())) {
-            this.connectionCredentials = credentials;
-            save();
-        }
+    public String getName() {
+        return name;
     }
 
     @DataBoundSetter
     public void setName(String name) {
-        if(name.length()!=0 && nameFormatCheck(name)) {
+        if (name.length() != 0 && nameFormatCheck(name)) {
             this.name = name;
             save();
         }
@@ -154,10 +198,8 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-    public String getName() { return name; }
-    public String getDescription(){ return description; }
-    public Credentials getConnectionCredentials(){
-        return this.connectionCredentials;
+    public String getDescription() {
+        return description;
     }
 
 
