@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import hudson.Extension;
 import hudson.ExtensionList;
-import hudson.util.ListBoxModel;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import hudson.model.AbstractDescribableImpl;

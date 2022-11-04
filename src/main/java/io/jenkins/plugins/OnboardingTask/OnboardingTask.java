@@ -29,6 +29,7 @@ import jenkins.model.GlobalConfiguration;
 /**
  * I have taken the global configuration plugin archetype and built on top of it
  */
+
 @Extension
 public class OnboardingTask extends GlobalConfiguration {
 
