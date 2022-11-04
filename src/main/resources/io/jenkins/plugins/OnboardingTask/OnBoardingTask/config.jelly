@@ -11,6 +11,10 @@
             <f:textarea/>
         </f:entry>
 
+        <f:entry field="lastJobRun" title="${%Last Job Run}">
+            <f:readOnlyTextbox/>
+        </f:entry>
+
         Please add your categories here:
         <f:entry>
         <f:hetero-list descriptors="${instance.categoryDescriptors}" name="categories"

@@ -61,11 +61,15 @@ public class OnboardingTaskBuilder extends Builder implements SimpleBuildStep {
             }
             buildQueue.add(new BuildAndCategory(run.getExternalizableId(), category));
             categoriesLatestJob.put(category.getName(), run.getParent().getFullName());
+            ExtensionList.lookupSingleton(OnboardingTask.class).setLastJobRun(buildQueue.peek().buildId);
             save();
         }
 
         public Queue<BuildAndCategory> getBuildQueue() {
             return buildQueue;
+        }
+        public HashMap<String, String> getCategoriesLatestJob(){
+            return categoriesLatestJob;
         }
 
         public String getBuildUrl(String id) {
