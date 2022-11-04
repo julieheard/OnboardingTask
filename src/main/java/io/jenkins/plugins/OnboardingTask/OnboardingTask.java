@@ -1,4 +1,4 @@
-package io.jenkins.plugins;
+package io.jenkins.plugins.OnboardingTask;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,20 +7,22 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.verb.POST;
 import org.springframework.http.HttpHeaders;
-
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
+
 
 /**
  * I have taken the global configuration plugin archetype and built on top of it
@@ -29,13 +31,11 @@ import jenkins.model.GlobalConfiguration;
 public class OnboardingTask extends GlobalConfiguration {
 
     private String temporaryPayload;
-
     private String name;
     private String description;
+    private List<Category> categories = new ArrayList<>();
 
-    /**
-     * @return the singleton instance
-     */
+
     public static OnboardingTask get() {
         return ExtensionList.lookupSingleton(OnboardingTask.class);
     }
@@ -44,6 +44,7 @@ public class OnboardingTask extends GlobalConfiguration {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
+
 
     /**
      * This method does exactly the same as doTestConnection() but also sends a payload.
@@ -102,7 +103,7 @@ public class OnboardingTask extends GlobalConfiguration {
                 //This adds a payload to the HTTP request
                 httpURLConnection.setDoOutput(true);
                 OutputStream os = httpURLConnection.getOutputStream();
-                os.write(temporaryPayload.getBytes());
+                os.write(temporaryPayload.getBytes(Charset.forName("UTF-8")));
                 os.flush();
                 os.close();
                 temporaryPayload = ""; //Set payload back to empty
@@ -180,8 +181,19 @@ public class OnboardingTask extends GlobalConfiguration {
         return matcher.matches();
     }
 
-    public String getName() {
-        return name;
+    public synchronized List<Category> getCategories(){
+        return categories;
+    }
+
+    @DataBoundSetter
+    public synchronized void setCategories(List<Category> categories){
+        this.categories = categories;
+        save();
+    }
+
+    //This helps link the Categories class to the categories dropdown box on global config page
+    public List<Category.DescriptorImpl> getCategoryDescriptors(){
+       return ExtensionList.lookup(Category.DescriptorImpl.class);
     }
 
     @DataBoundSetter
@@ -200,6 +212,10 @@ public class OnboardingTask extends GlobalConfiguration {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getName() {
+        return name;
     }
 
 
