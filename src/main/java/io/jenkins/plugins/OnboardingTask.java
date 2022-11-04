@@ -3,11 +3,13 @@ package io.jenkins.plugins;
 import hudson.Extension;
 import hudson.ExtensionList;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
+import java.security.Security;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,17 +26,33 @@ public class OnboardingTask extends GlobalConfiguration {
 
     private String name;
     private String description;
+    private String url;
+    private String username;
+    private Secret password;
+
+
+
+
 
     public OnboardingTask() {
         // When Jenkins is restarted, load any saved configuration from disk.
         load();
     }
 
-    /** @return the currently configured name, if any */
+
     public String getName() {
         return name;
     }
     public String getDescription(){ return description; }
+    public String getURL() {
+        return url;
+    }
+    public String getUsername() {
+        return username;
+    }
+    public Secret getPassword() {
+        return password;
+    }
 
     /**
      * Together with {@link #getName}, binds to entry in {@code config.jelly}.
@@ -54,16 +72,41 @@ public class OnboardingTask extends GlobalConfiguration {
         save();
     }
 
-    public FormValidation doCheckName(@QueryParameter String value) {
 
+    @DataBoundSetter
+    public void setURL(String url) {
+        this.url = url;
+        save();
+    }
+
+    @DataBoundSetter
+    public void setUsername(String username) {
+        this.username = username;
+        save();
+    }
+
+    @DataBoundSetter
+    public void setPassword(Secret password) {
+        this.password = password;
+        save();
+    }
+
+    public FormValidation doCheckName(@QueryParameter String name) {
         //Empty name check
-        if (StringUtils.isEmpty(value)) {
+        if (StringUtils.isEmpty(name)) {
             return FormValidation.warning("Please specify a name.");
         }else{
-            //Check format of name (letters and hyphens only)
-            if(!nameFormatCheck(value)){
-                return FormValidation.warning("Please enter a valid name (letters and hyphens only).");
+            //Check format of name (letters only)
+            if(!nameFormatCheck(name)){
+                return FormValidation.warning("Please enter a valid name (letters only, no spaces).");
             }
+        }
+        return FormValidation.ok();
+    }
+
+    public FormValidation doCheckUsername(@QueryParameter String username) {
+        if (!nameFormatCheck(username)){
+                return FormValidation.warning("Please enter a valid username (letters only, no spaces).");
         }
         return FormValidation.ok();
     }

@@ -11,5 +11,25 @@
             <f:textarea/>
         </f:entry>
 
+        <f:block>
+            <table>
+                <f:optionalBlock name="dynamic" title="Optional settings:">
+
+                    <f:entry field="url" title="${%URL}">
+                        <f:textbox/>
+                    </f:entry>
+
+                    <f:entry field="username" title="${%Username}">
+                        <f:textbox/>
+                    </f:entry>
+
+                    <f:entry field="password" title="${%Password}">
+                        <f:password/>
+                    </f:entry>
+
+                </f:optionalBlock>
+            </table>
+        </f:block>
+
     </f:section>
 </j:jelly>
